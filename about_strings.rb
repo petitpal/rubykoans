@@ -40,11 +40,11 @@ class AboutStrings < Neo::Koan
 It was the best of times,
 It was the worst of times.
 }
-    assert_equal 54, long_string.length
+    assert_equal 54, long_string.length       # leading \n
     assert_equal 3, long_string.lines.count
-    assert_equal `\n`, long_string[0,1]
-    assert_equal `\nI`, long_string[0,2]
-    assert_equal `It`, long_string[1,2]
+    assert_equal "\n", long_string[0,1]
+    assert_equal "\nI", long_string[0,2]
+    assert_equal "It", long_string[1,2]
   end
 
   def test_here_documents_can_also_handle_multiple_lines
@@ -52,29 +52,31 @@ It was the worst of times.
 It was the best of times,
 It was the worst of times.
 EOS
-    assert_equal __, long_string.length
-    assert_equal __, long_string.lines.count
-    assert_equal __, long_string[0,1]
+    assert_equal 53, long_string.length       # no leading \n
+    assert_equal 2, long_string.lines.count
+    assert_equal "I", long_string[0,1]
   end
 
   def test_plus_will_concatenate_two_strings
     string = "Hello, " + "World"
-    assert_equal __, string
+    assert_equal "Hello, World", string
+    assert_not_equal "hello, world", string   # comparison is case sensitive
   end
 
   def test_plus_concatenation_will_leave_the_original_strings_unmodified
     hi = "Hello, "
     there = "World"
     string = hi + there
-    assert_equal __, hi
-    assert_equal __, there
+    assert_equal "Hello, ", hi
+    assert_equal "World", there
   end
 
   def test_plus_equals_will_concatenate_to_the_end_of_a_string
     hi = "Hello, "
     there = "World"
     hi += there
-    assert_equal __, hi
+    assert_equal "Hello, World", hi
+    assert_equal "World", there             # remains unmodified
   end
 
   def test_plus_equals_also_will_leave_the_original_string_unmodified
@@ -82,15 +84,17 @@ EOS
     hi = original_string
     there = "World"
     hi += there
-    assert_equal __, original_string
+    assert_equal "Hello, ", original_string
+    assert_equal "Hello, World", hi         # also modified
+    assert_equal "World", there             # not modified
   end
 
   def test_the_shovel_operator_will_also_append_content_to_a_string
     hi = "Hello, "
     there = "World"
     hi << there
-    assert_equal __, hi
-    assert_equal __, there
+    assert_equal "Hello, World", hi
+    assert_equal "World", there
   end
 
   def test_the_shovel_operator_modifies_the_original_string
@@ -98,7 +102,8 @@ EOS
     hi = original_string
     there = "World"
     hi << there
-    assert_equal __, original_string
+    assert_equal "Hello, World", original_string
+    assert_equal hi.object_id, original_string.object_id    # << is a method of the object, so modifies it - += creates a new one?
 
     # THINK ABOUT IT:
     #
@@ -108,76 +113,76 @@ EOS
 
   def test_double_quoted_string_interpret_escape_characters
     string = "\n"
-    assert_equal __, string.size
+    assert_equal 1, string.size
   end
 
   def test_single_quoted_string_do_not_interpret_escape_characters
     string = '\n'
-    assert_equal __, string.size
+    assert_equal 2, string.size
   end
 
   def test_single_quotes_sometimes_interpret_escape_characters
     string = '\\\''
-    assert_equal __, string.size
-    assert_equal __, string
+    assert_equal 2, string.size
+    assert_equal "\\'", string
   end
 
   def test_double_quoted_strings_interpolate_variables
     value = 123
     string = "The value is #{value}"
-    assert_equal __, string
+    assert_equal "The value is 123", string
   end
 
   def test_single_quoted_strings_do_not_interpolate
     value = 123
     string = 'The value is #{value}'
-    assert_equal __, string
+    assert_equal 'The value is #{value}', string
   end
 
   def test_any_ruby_expression_may_be_interpolated
     string = "The square root of 5 is #{Math.sqrt(5)}"
-    assert_equal __, string
+    assert_equal "The square root of 5 is 2.23606797749979", string
   end
 
   def test_you_can_get_a_substring_from_a_string
     string = "Bacon, lettuce and tomato"
-    assert_equal __, string[7,3]
-    assert_equal __, string[7..9]
+    assert_equal "let", string[7,3]           # index 3 - take 3
+    assert_equal "let", string[7..9]          # range 7 -> 9
   end
 
   def test_you_can_get_a_single_character_from_a_string
     string = "Bacon, lettuce and tomato"
-    assert_equal __, string[1]
+    assert_equal "a", string[1]
 
-    # Surprised?
+    # Surprised? ... no?
   end
 
   in_ruby_version("1.8") do
     def test_in_older_ruby_single_characters_are_represented_by_integers
-      assert_equal __, ?a
-      assert_equal __, ?a == 97
+      assert_equal 97, ?a
+      assert_equal true, ?a == 97     # standard ascii
 
-      assert_equal __, ?b == (?a + 1)
+      assert_equal 98, ?b == (?a + 1)
     end
   end
 
   in_ruby_version("1.9", "2") do
     def test_in_modern_ruby_single_characters_are_represented_by_strings
-      assert_equal __, ?a
-      assert_equal __, ?a == 97
+      assert_equal "a", ?a
+      assert_equal false, ?a == 97
     end
   end
 
   def test_strings_can_be_split
     string = "Sausage Egg Cheese"
     words = string.split
-    assert_equal [__, __, __], words
+    assert_equal ["Sausage", "Egg", "Cheese"], words
   end
 
   def test_strings_can_be_split_with_different_patterns
     string = "the:rain:in:spain"
     words = string.split(/:/)
-    assert_equal [__, __, __, __], words
+    assert_equal ["the", "rain", "in", "spain"], words
 
     # NOTE: Patterns are formed from Regular Expressions.  Ruby has a
     # very powerful Regular Expression library.  We will become
@@ -186,14 +191,14 @@ EOS
 
   def test_strings_can_be_joined
     words = ["Now", "is", "the", "time"]
-    assert_equal __, words.join(" ")
+    assert_equal "Now is the time", words.join(" ")
   end
 
   def test_strings_are_unique_objects
     a = "a string"
     b = "a string"
 
-    assert_equal __, a           == b
-    assert_equal __, a.object_id == b.object_id
+    assert_equal true, a           == b
+    assert_equal false, a.object_id == b.object_id
   end
 end
