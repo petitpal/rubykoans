@@ -20,11 +20,11 @@ def triangle(a, b, c)
   end
 
   if a==b && b==c
-    return :equilateral
+    :equilateral  # could also be #equilateral
   elsif a==b || b==c || c==a
-    return :isosceles
+    :isosceles
   else
-    return :scalene
+    :scalene
   end
 # WRITE THIS CODE
 end
