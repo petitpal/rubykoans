@@ -29,11 +29,56 @@ require File.expand_path(File.dirname(__FILE__) + '/neo')
 #
 # Your goal is to write the score method.
 
+def total(counts, roll)
+  counts[roll-1] += 1
+end
+
 def score(dice)
   # You need to write this method
+
+  # create array with position for each possible number, and count occurences
+  # (works for fine for 6 numbers - in higher volume scenarios it would be rubbish)
+  counts = Array.new(6,0)
+  dice.each do |die|
+    total(counts,die)
+  end
+
+  # calculate score from counts
+  score = 0
+
+  # scores 3 x 1s
+  if counts[0] >= 3
+    score = 1000
+    counts[0] -= 3
+  end
+
+  # score individual 1s
+  score += counts[0] * 100
+
+  # looks for any counts of 3
+  counts.each_with_index do |item, idx|
+    if item >= 3
+      score += (idx + 1) * 100
+      counts[idx] = item -= 3
+    end
+  end
+  
+  # score remaining 5s
+  score += counts[4] * 50
+
+  score
 end
 
 class AboutScoringProject < Neo::Koan
+
+  def test_score_of_mixed_is_sum99
+    assert_equal 250, score([2,5,2,2,3])
+    assert_equal 550, score([5,5,5,5])
+    assert_equal 1100, score([1,1,1,1])
+    assert_equal 1200, score([1,1,1,1,1])
+    assert_equal 1150, score([1,1,1,5,1])
+  end
+
   def test_score_of_an_empty_list_is_zero
     assert_equal 0, score([])
   end
